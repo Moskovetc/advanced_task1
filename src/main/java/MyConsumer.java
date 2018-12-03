@@ -17,7 +17,8 @@ public class MyConsumer implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            System.out.println(String.format("%s geted %s",Thread.currentThread().getName(), book.getRequest()));
+//            System.out.println(String.format("%s geted, result: %s", Thread.currentThread().getName(), book.toString()));
         }
-        System.out.println(String.format("%s geted, result: %s", Thread.currentThread().getName(), book.toString()));
     }
 }

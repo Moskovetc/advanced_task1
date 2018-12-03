@@ -23,8 +23,8 @@ public class HotelBook {
     }
 
     public synchronized BookingRequest getRequest() {
-        BookingRequest request = requests.get(requests.size() - 1);
-        requests.remove(requests.size() - 1);
+        BookingRequest request = requests.get(0);
+        requests.remove(0);
         if (requests.size() < QUEUE_SIZE) {
             notify();
         }

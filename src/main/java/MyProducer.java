@@ -14,15 +14,16 @@ public class MyProducer implements Runnable{
 
     @Override
     public void run() {
-        while (quantityRequests < MAX_REQUESTS){
+        for (int i = 0; i < 15; i++){
             try {
-                book.putRequest(createRandomRequest());
-                quantityRequests++;
+                BookingRequest request = createRandomRequest();
+                book.putRequest(request);
+                System.out.println(String.format("%s puted %s",Thread.currentThread().getName(),request));
+//                System.out.println(String.format("%s puted, result: %s", Thread.currentThread().getName(), book.toString()));
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        System.out.println(String.format("%s puted, result: %s", Thread.currentThread().getName(), book.toString()));
     }
 
     private BookingRequest createRandomRequest(){
