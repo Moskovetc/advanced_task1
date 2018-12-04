@@ -1,24 +1,35 @@
 import hotelbook.HotelBook;
 
 public class MyConsumer implements Runnable {
-    private volatile HotelBook book;
+    private HotelBook book;
     private final int ACTIVITY = 5000;
-    private Integer quantityRequests = 0;
+    private static Integer quantityRequests = 0;
+    private final Integer MAX_REQUESTS;
+    private final int QUEUE_SIZE = 5;
 
-    public MyConsumer(HotelBook book) {
+    public MyConsumer(HotelBook book, Integer maxRequests) {
         this.book = book;
+        this.MAX_REQUESTS = maxRequests;
     }
 
     @Override
     public void run() {
-        while (!book.isEmpty()){
+        while (!(quantityRequests.compareTo(MAX_REQUESTS) == 0)) {
+            synchronized (book) {
+                if (!book.isEmpty()){
+                    book.getRequest();
+                    quantityRequests++;
+                    System.out.println(Thread.currentThread().getName() + " get " + book.size());
+                }
+            }
+            if (!book.isEmpty() && (book.size() < QUEUE_SIZE)) {
+                notify();
+            }
             try {
                 Thread.sleep(ACTIVITY);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            System.out.println(String.format("%s geted %s",Thread.currentThread().getName(), book.getRequest()));
-//            System.out.println(String.format("%s geted, result: %s", Thread.currentThread().getName(), book.toString()));
         }
     }
 }
