@@ -19,16 +19,17 @@ public class HotelBook {
 
     public void consume() throws InterruptedException {
         while (MAX_REQUESTS > quantityRequests.get()) {
-
             Thread.sleep(ACTIVITY);
             synchronized (this) {
-                if (requests.isEmpty()) {
+                if (requests.isEmpty() && MAX_REQUESTS != quantityRequests.get()) {
                     wait();
                 }
-                BookingRequest request = requests.removeFirst();
-                notify();
-                System.out.println(String.format("%s geted size: %s increment: %s",
-                        Thread.currentThread().getName(), requests.size(), quantityRequests.get()));
+                if (!requests.isEmpty()) {
+                    BookingRequest request = requests.removeFirst();
+                    notifyAll();
+                    System.out.println(String.format("%s geted size: %s increment: %s",
+                            Thread.currentThread().getName(), requests.size(), quantityRequests.get()));
+                }
             }
         }
     }
@@ -38,7 +39,7 @@ public class HotelBook {
             synchronized (this) {
                 if (requests.size() != QUEUE_SIZE) {
                     this.requests.add(new RandomBookingRequest().get());
-                    notify();
+                    notifyAll();
                     quantityRequests.getAndIncrement();
                     System.out.println(String.format("%s puted size: %s increment: %s",
                             Thread.currentThread().getName(), requests.size(), quantityRequests.get()));
