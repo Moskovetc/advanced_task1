@@ -1,11 +1,14 @@
 package hotelbook;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class HotelBook {
-    private List<BookingRequest> requests = new ArrayList<>();
+    LinkedList<BookingRequest> requests = new LinkedList<>();
     private final int QUEUE_SIZE = 5;
+    private final int MAX_REQUESTS = 15;
+    private static AtomicInteger quantityRequests = new AtomicInteger(0);
+    private final int ACTIVITY = 5000;
 
     @Override
     public String toString() {
@@ -14,37 +17,34 @@ public class HotelBook {
                 '}';
     }
 
-    public synchronized int size() {
-        return requests.size();
-    }
+    public void consume() throws InterruptedException {
+        while (MAX_REQUESTS > quantityRequests.get()) {
 
-    public synchronized boolean isEmpty() {
-        return requests.isEmpty();
-    }
-
-    public synchronized BookingRequest getRequest() {
-        while (requests.isEmpty()){
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            Thread.sleep(ACTIVITY);
+            synchronized (this) {
+                if (requests.isEmpty()) {
+                    wait();
+                }
+                BookingRequest request = requests.removeFirst();
+                notify();
+                System.out.println(String.format("%s geted size: %s increment: %s",
+                        Thread.currentThread().getName(), requests.size(), quantityRequests.get()));
             }
         }
-        BookingRequest request = requests.get(0);
-        requests.remove(0);
-        notify();
-        return request;
     }
 
-    public synchronized void putRequest(BookingRequest request) {
-        while (requests.size() == QUEUE_SIZE){
-            try {
+    public void produce() throws InterruptedException {
+        while (MAX_REQUESTS > quantityRequests.get()) {
+            synchronized (this) {
+                if (requests.size() != QUEUE_SIZE) {
+                    this.requests.add(new RandomBookingRequest().get());
+                    notify();
+                    quantityRequests.getAndIncrement();
+                    System.out.println(String.format("%s puted size: %s increment: %s",
+                            Thread.currentThread().getName(), requests.size(), quantityRequests.get()));
+                }
                 wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         }
-        this.requests.add(request);
-        notify();
     }
 }

@@ -6,11 +6,23 @@ public class RequestHandlerService {
     public void start(){
         HotelBook book = new HotelBook();
         for (int i = 0; i < 3; i++){
-            Thread producerThread = new Thread(new MyProducer(book, MAX_REQUESTS));
+            Thread producerThread = new Thread(() -> {
+                try {
+                    book.produce();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
             producerThread.start();
         }
         for (int i = 0; i < 6; i++){
-            Thread consumerThread = new Thread(new MyConsumer(book, MAX_REQUESTS));
+            Thread consumerThread = new Thread(() -> {
+                try {
+                    book.consume();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
             consumerThread.start();
         }
     }
