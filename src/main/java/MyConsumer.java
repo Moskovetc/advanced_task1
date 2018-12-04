@@ -16,15 +16,27 @@ public class MyConsumer implements Runnable {
     @Override
     public void run() {
         while (MAX_REQUESTS > quantityRequests.get()) {
-            try {
-                Thread.sleep(ACTIVITY);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            synchronized (book) {
+                try {
+                    Thread.sleep(ACTIVITY);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if (book.isEmpty() && MAX_REQUESTS != quantityRequests.get()) {
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (!book.isEmpty()) {
+                    book.getRequest();
+                    quantityRequests.getAndIncrement();
+                    notifyAll();
+                }
+                System.out.println(String.format("%s geted size: %s increment: %s",
+                        Thread.currentThread().getName(), book.size(), quantityRequests.get()));
             }
-            book.getRequest();
-            quantityRequests.getAndIncrement();
-            System.out.println(String.format("%s geted size: %s increment: %s",
-                    Thread.currentThread().getName(), book.size(), quantityRequests.get()));
         }
     }
 }

@@ -5,7 +5,6 @@ import java.util.List;
 
 public class HotelBook {
     private List<BookingRequest> requests = new ArrayList<>();
-    private final int QUEUE_SIZE = 5;
 
     @Override
     public String toString() {
@@ -14,37 +13,21 @@ public class HotelBook {
                 '}';
     }
 
-    public synchronized int size() {
+    public int size() {
         return requests.size();
     }
 
-    public synchronized boolean isEmpty() {
+    public boolean isEmpty() {
         return requests.isEmpty();
     }
 
-    public synchronized BookingRequest getRequest() {
-        while (requests.isEmpty()){
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+    public BookingRequest getRequest() {
         BookingRequest request = requests.get(0);
         requests.remove(0);
-        notify();
         return request;
     }
 
-    public synchronized void putRequest(BookingRequest request) {
-        while (requests.size() == QUEUE_SIZE){
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+    public void putRequest(BookingRequest request) {
         this.requests.add(request);
-        notify();
     }
 }
