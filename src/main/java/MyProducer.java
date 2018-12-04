@@ -1,12 +1,12 @@
-import hotelbook.BookingRequest;
 import hotelbook.HotelBook;
 import hotelbook.RandomBookingRequest;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class MyProducer implements Runnable {
     private HotelBook book;
-    private static Integer quantityProducedRequests = 0;
-    private final Integer MAX_REQUESTS;
-    private final int QUEUE_SIZE = 5;
+    private static AtomicInteger quantityProducedRequests = new AtomicInteger(0);
+    private final int MAX_REQUESTS;
 
     public MyProducer(HotelBook book, Integer maxRequests) {
         this.book = book;
@@ -15,28 +15,11 @@ public class MyProducer implements Runnable {
 
     @Override
     public void run() {
-        while (quantityProducedRequests.compareTo(MAX_REQUESTS) < 1) {
-            try {
-                BookingRequest request = createRandomRequest();
-
-                    if (book.size() < QUEUE_SIZE) {
-                        synchronized (book) {
-                            book.putRequest(request);
-                            quantityProducedRequests++;
-                            System.out.println(Thread.currentThread().getName() + " put " + book.size() + " " + quantityProducedRequests);
-                        }
-                    } else {
-                        wait();
-                    }
-
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        while (MAX_REQUESTS > quantityProducedRequests.get()) {
+            book.putRequest(new RandomBookingRequest().get());
+            quantityProducedRequests.getAndIncrement();
+            System.out.println(String.format("%s puted size: %s increment: %s",
+                    Thread.currentThread().getName(), book.size(), quantityProducedRequests.get()));
         }
-    }
-
-    private BookingRequest createRandomRequest() {
-        RandomBookingRequest request = new RandomBookingRequest();
-        return request.get();
     }
 }

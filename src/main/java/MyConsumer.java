@@ -1,11 +1,12 @@
 import hotelbook.HotelBook;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class MyConsumer implements Runnable {
     private HotelBook book;
     private final int ACTIVITY = 5000;
-    private static Integer quantityRequests = 0;
-    private final Integer MAX_REQUESTS;
-    private final int QUEUE_SIZE = 5;
+    private static AtomicInteger quantityRequests = new AtomicInteger(0);
+    private final int MAX_REQUESTS;
 
     public MyConsumer(HotelBook book, Integer maxRequests) {
         this.book = book;
@@ -14,22 +15,16 @@ public class MyConsumer implements Runnable {
 
     @Override
     public void run() {
-        while (!(quantityRequests.compareTo(MAX_REQUESTS) == 0)) {
-            synchronized (book) {
-                if (!book.isEmpty()){
-                    book.getRequest();
-                    quantityRequests++;
-                    System.out.println(Thread.currentThread().getName() + " get " + book.size());
-                }
-            }
-            if (!book.isEmpty() && (book.size() < QUEUE_SIZE)) {
-                notify();
-            }
+        while (MAX_REQUESTS > quantityRequests.get()) {
             try {
                 Thread.sleep(ACTIVITY);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            book.getRequest();
+            quantityRequests.getAndIncrement();
+            System.out.println(String.format("%s geted size: %s increment: %s",
+                    Thread.currentThread().getName(), book.size(), quantityRequests.get()));
         }
     }
 }
